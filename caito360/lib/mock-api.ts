@@ -4,10 +4,10 @@ export const mockMe: MeResponse = {
   user: {
     id: "user-123",
     email: "moiz@acmecorp.com",
-    fullName: "Moiz Khan",
+    fullName: "Abdul Moiz",
     role: "owner",
     department: "finance",
-    branch: "karachi"
+    branch: "Islamabad"
   },
   tenant: { id: "tenant-abc", name: "Acme Corp" },
   plan: { id: "growth", name: "Growth", maxDocuments: 250, maxQuestions: 5000, maxSeats: 10 },
