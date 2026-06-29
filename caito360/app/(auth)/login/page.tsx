@@ -41,8 +41,8 @@ export default function LoginPage() {
         {/* Pitch */}
         <div className="relative z-10">
           <blockquote className="text-2xl font-medium leading-snug mb-6" style={{ color: '#F1F5F9' }}>
-            "Your documents,<br />
-            <span className="gradient-text">intelligently answered.</span>"
+            &quot;Your documents,<br />
+            <span className="gradient-text">intelligently answered.</span>&quot;
           </blockquote>
           <p className="text-sm leading-relaxed mb-8" style={{ color: '#475569' }}>
             Upload financial reports, sales data, and business documents. Ask questions in plain English. Get answers backed by your actual data.
