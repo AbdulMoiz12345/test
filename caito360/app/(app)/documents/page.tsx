@@ -1,7 +1,7 @@
 'use client'
 export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
-import { FileText, Upload, AlertTriangle, Trash2, Eye } from 'lucide-react'
+import { FileText, Upload, AlertTriangle, Trash2, Eye, Lock, Users } from 'lucide-react'
 import Link from 'next/link'
 import { api } from '@/lib/api'
 import { Topbar } from '@/components/layout/Topbar'
@@ -10,6 +10,7 @@ import { UploadZone } from '@/components/documents/UploadZone'
 import { RoleGate } from '@/components/shared/RoleGate'
 import { Button } from '@/components/shared/Button'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { useMe } from '@/contexts/MeContext'
 import type { Document } from '@/lib/types'
 
 function timeAgo(dateStr: string) {
@@ -20,7 +21,22 @@ function timeAgo(dateStr: string) {
   return `${Math.floor(diff / 86400)}d ago`
 }
 
+function VisibilityBadge({ visibility }: { visibility: string }) {
+  if (visibility === 'private') return (
+    <span className="inline-flex items-center gap-1 text-xs text-[#64748B]">
+      <Lock className="w-3 h-3" /> Private
+    </span>
+  )
+  if (visibility === 'department') return (
+    <span className="inline-flex items-center gap-1 text-xs text-[#F59E0B]">
+      <Users className="w-3 h-3" /> Dept
+    </span>
+  )
+  return <span className="text-xs text-[#64748B] capitalize">{visibility}</span>
+}
+
 export default function DocumentsPage() {
+  const me = useMe()
   const [docs, setDocs] = useState<Document[]>([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
@@ -37,7 +53,7 @@ export default function DocumentsPage() {
       filename: 'Uploaded_Document.pdf',
       status: 'processing',
       docType: 'report',
-      department: 'finance',
+      department: me.user.department,
       visibility: 'tenant',
       uploadedAt: new Date().toISOString(),
       pageCount: null,
@@ -55,13 +71,22 @@ export default function DocumentsPage() {
     }, 3000)
   }
 
-  const filtered = docs.filter(d => {
+  // Visibility scoping: viewer/member only see their dept + tenant-wide docs
+  // owner/admin/manager see everything
+  const visibleDocs = (['owner', 'admin', 'manager'] as const).includes(me.user.role as 'owner' | 'admin' | 'manager')
+    ? docs
+    : docs.filter(d =>
+        d.visibility === 'tenant' ||
+        (d.visibility === 'department' && d.department === me.user.department)
+      )
+
+  const filtered = visibleDocs.filter(d => {
     if (statusFilter !== 'all' && d.status !== statusFilter) return false
     if (deptFilter !== 'all' && d.department !== deptFilter) return false
     return true
   })
 
-  const depts = Array.from(new Set(docs.map(d => d.department)))
+  const depts = Array.from(new Set(visibleDocs.map(d => d.department)))
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -136,7 +161,7 @@ export default function DocumentsPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-[#64748B] text-xs capitalize font-mono">{doc.docType}</td>
-                    <td className="px-4 py-3 text-[#64748B] text-xs capitalize">{doc.visibility}</td>
+                    <td className="px-4 py-3"><VisibilityBadge visibility={doc.visibility} /></td>
                     <td className="px-4 py-3 text-[#64748B] text-xs capitalize">{doc.department}</td>
                     <td className="px-4 py-3 text-[#64748B] text-xs font-mono">{doc.pageCount ?? '—'}</td>
                     <td className="px-4 py-3"><StatusBadge status={doc.status} /></td>

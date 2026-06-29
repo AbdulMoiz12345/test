@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, MessageSquare, FileText, Lightbulb, Settings, ChevronLeft, ChevronRight } from 'lucide-react'
+import { LayoutDashboard, MessageSquare, FileText, Lightbulb, Settings, ChevronLeft, ChevronRight, CreditCard } from 'lucide-react'
 import { useState } from 'react'
 import { useMe } from '@/contexts/MeContext'
 
@@ -24,6 +24,11 @@ export function Sidebar() {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
   const me = useMe()
+
+  const settingsLinks = [
+    { href: '/settings/profile', icon: Settings, label: 'Settings' },
+    ...(me.user.role === 'owner' ? [{ href: '/settings/billing', icon: CreditCard, label: 'Billing' }] : []),
+  ]
 
   return (
     <aside className={`relative flex flex-col bg-[#13131A] border-r border-[#1E1E2E] transition-all duration-200 ${collapsed ? 'w-14' : 'w-60'}`} style={{ minHeight: '100vh' }}>
@@ -65,14 +70,18 @@ export function Sidebar() {
 
       {/* Bottom */}
       <div className="border-t border-[#1E1E2E] px-2 py-3 space-y-0.5">
-        <Link
-          href="/settings/profile"
-          className={`flex items-center gap-3 px-2 py-2 rounded text-sm text-[#64748B] hover:text-[#F1F5F9] hover:bg-[#1E1E2E] transition-colors`}
-          title={collapsed ? 'Settings' : undefined}
-        >
-          <Settings className="w-4 h-4 flex-shrink-0" />
-          {!collapsed && <span>Settings</span>}
-        </Link>
+        {settingsLinks.map(({ href, icon: Icon, label }) => (
+          <Link
+            key={href}
+            href={href}
+            className={`flex items-center gap-3 px-2 py-2 rounded text-sm transition-colors
+              ${pathname.startsWith(href) ? 'bg-[#1E1E2E] text-[#F1F5F9]' : 'text-[#64748B] hover:text-[#F1F5F9] hover:bg-[#1E1E2E]'}`}
+            title={collapsed ? label : undefined}
+          >
+            <Icon className="w-4 h-4 flex-shrink-0" />
+            {!collapsed && <span>{label}</span>}
+          </Link>
+        ))}
 
         {!collapsed && (
           <div className="flex items-center gap-2 px-2 py-2 mt-1">
